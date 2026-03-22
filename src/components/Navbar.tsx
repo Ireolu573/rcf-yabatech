@@ -22,9 +22,10 @@ const Navbar = () => {
           <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center">
             <span className="text-primary-foreground font-heading font-bold text-sm">RCF</span>
           </div>
-          <span className="font-heading font-bold text-lg text-foreground hidden sm:block">
-            Redeemed Christian Fellowship Yabatech Chapter
-          </span>
+          <div className="hidden sm:flex flex-col leading-tight">
+            <span className="font-heading font-bold text-lg text-foreground">RCF YABATECH</span>
+            <span className="text-xs text-muted-foreground">The Redeemed Christian Fellowship Yabatech Chapter</span>
+          </div>
         </Link>
 
         {/* Desktop */}
