@@ -8,10 +8,8 @@ import type { Tables } from "@/integrations/supabase/types";
 import hero1 from "@/assets/hero-1.jpg";
 import hero2 from "@/assets/hero-2.jpg";
 import hero3 from "@/assets/hero-3.jpg";
-import hero4 from "@/assets/hero-4.jpg";
-import hero5 from "@/assets/hero-5.jpg";
 
-const heroImages = [hero1, hero2, hero3, hero4, hero5];
+const heroImages = [hero1, hero2, hero3];
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
