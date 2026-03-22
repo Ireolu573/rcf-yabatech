@@ -23,7 +23,7 @@ const Navbar = () => {
             <span className="text-primary-foreground font-heading font-bold text-sm">RCF</span>
           </div>
           <span className="font-heading font-bold text-lg text-foreground hidden sm:block">
-            RCF YABATECH
+            Redeemed Christian Fellowship Yabatech Chapter
           </span>
         </Link>
 
