@@ -103,7 +103,7 @@ const Index = () => {
       {serviceTimes.length > 0 && (
         <section className="py-20 bg-gradient-section">
           <div className="container mx-auto px-4">
-            <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="font-heading text-3xl md:text-4xl font-bold text-foreground text-center mb-12">Service Times & Venue</motion.h2>
+            <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="font-heading text-3xl md:text-4xl font-bold text-foreground text-center mb-12">Our Services</motion.h2>
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {serviceTimes.map((s, i) => (
                 <motion.div key={s.id} variants={fadeUp} custom={i + 1} className="bg-card rounded-2xl p-8 text-center shadow-soft hover:shadow-glow-primary transition-shadow duration-300">
