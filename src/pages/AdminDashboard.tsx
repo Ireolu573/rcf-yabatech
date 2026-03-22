@@ -40,6 +40,7 @@ const AdminDashboard = () => {
   const [newCaption, setNewCaption] = useState("");
   const [newDateLabel, setNewDateLabel] = useState("");
   const [newLeader, setNewLeader] = useState({ name: "", role: "", initials: "" });
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [editingAbout, setEditingAbout] = useState<Record<string, { title: string; content: string }>>({});
   const [savingAbout, setSavingAbout] = useState<string | null>(null);
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
@@ -192,6 +193,27 @@ const AdminDashboard = () => {
     if (parts[1]) await supabase.storage.from("gallery").remove([parts[1]]);
     await supabase.from("gallery_images").delete().eq("id", id);
     toast({ title: "Image deleted" }); fetchAll();
+  };
+
+  const deleteSelectedImages = async () => {
+    if (selectedImages.size === 0) return;
+    const toDelete = galleryImages.filter(img => selectedImages.has(img.id));
+    const storageKeys = toDelete.map(img => img.image_url.split("/gallery/")[1]).filter(Boolean);
+    if (storageKeys.length > 0) await supabase.storage.from("gallery").remove(storageKeys);
+    for (const id of selectedImages) {
+      await supabase.from("gallery_images").delete().eq("id", id);
+    }
+    toast({ title: `${selectedImages.size} image${selectedImages.size > 1 ? "s" : ""} deleted` });
+    setSelectedImages(new Set());
+    fetchAll();
+  };
+
+  const toggleSelectImage = (id: string) => {
+    setSelectedImages(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
   };
 
   // ── TESTIMONIES ───────────────────────────────────────────
@@ -382,19 +404,38 @@ const AdminDashboard = () => {
                 <p className="text-muted-foreground text-xs mt-2">You can select multiple images at once. Images are compressed before upload.</p>
               </div>
             </div>
+
+            {selectedImages.size > 0 && (
+              <div className="flex items-center justify-between bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3">
+                <p className="text-sm font-medium text-foreground">{selectedImages.size} image{selectedImages.size > 1 ? "s" : ""} selected</p>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedImages(new Set())} className="text-muted-foreground">Clear</Button>
+                  <Button size="sm" onClick={deleteSelectedImages} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    <Trash2 size={14} className="mr-1" /> Delete Selected
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {galleryImages.length === 0 && <p className="text-muted-foreground text-center py-8 col-span-4">No images yet.</p>}
               {galleryImages.map(img => (
-                <div key={img.id} className={`relative group rounded-xl overflow-hidden shadow-soft ${!img.is_active ? "opacity-50" : ""}`}>
+                <div key={img.id} className={`relative group rounded-xl overflow-hidden shadow-soft cursor-pointer ${!img.is_active ? "opacity-50" : ""} ${selectedImages.has(img.id) ? "ring-2 ring-primary" : ""}`}
+                  onClick={() => toggleSelectImage(img.id)}>
                   <img src={img.image_url} alt={img.caption || ""} className="w-full h-40 object-cover" loading="lazy" />
-                  <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  {/* Checkbox indicator */}
+                  <div className={`absolute top-2 left-2 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${selectedImages.has(img.id) ? "bg-primary border-primary" : "bg-black/40 border-white/60 group-hover:border-white"}`}>
+                    {selectedImages.has(img.id) && <Check size={12} className="text-white" />}
+                  </div>
+                  <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2"
+                    onClick={e => e.stopPropagation()}>
                     <Button variant="ghost" size="sm" onClick={() => toggleGalleryImage(img.id, img.is_active)} className="text-primary-foreground p-2 h-auto" title={img.is_active ? "Hide" : "Show"}>
                       {img.is_active ? <EyeOff size={18} /> : <Eye size={18} />}
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => deleteGalleryImage(img.id, img.image_url)} className="text-destructive p-2 h-auto"><Trash2 size={18} /></Button>
                   </div>
                   {!img.is_active && (
-                    <div className="absolute top-2 left-2 bg-foreground/70 text-primary-foreground text-xs px-2 py-0.5 rounded-full">Hidden</div>
+                    <div className="absolute top-2 right-2 bg-foreground/70 text-primary-foreground text-xs px-2 py-0.5 rounded-full">Hidden</div>
                   )}
                   {img.caption && <p className="absolute bottom-0 left-0 right-0 bg-foreground/60 text-primary-foreground text-xs p-2 truncate">{img.caption}</p>}
                 </div>
