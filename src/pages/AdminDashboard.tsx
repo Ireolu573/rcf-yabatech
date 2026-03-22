@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getUserFriendlyError } from "@/lib/errorHandler";
-import { LogOut, Plus, Trash2, Check, Clock, Image, MessageSquare, Megaphone, Mail, Info, Save, Users, Settings, Eye, EyeOff, BookOpen, Heart, Target } from "lucide-react";
+import { LogOut, Plus, Trash2, Check, Clock, Image, MessageSquare, Megaphone, Mail, Info, Save, Users, Settings, Eye, EyeOff, BookOpen, Heart, Target, Headphones, Upload, Loader2, CheckCircle, FileText } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 const ICONS = [
@@ -46,8 +46,17 @@ const AdminDashboard = () => {
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
   const [savingSettings, setSavingSettings] = useState(false);
 
+  // ── SERMON UPLOAD STATE ────────────────────────────────────
+  const [sermonForm, setSermonForm] = useState({ title: "", speaker: "", service_date: "", summary: "" });
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [notesFile, setNotesFile] = useState<File | null>(null);
+  const [sermonUploading, setSermonUploading] = useState(false);
+  const [sermonSuccess, setSermonSuccess] = useState(false);
+  const [sermonError, setSermonError] = useState("");
+  const [sermonList, setSermonList] = useState<any[]>([]);
+
   const fetchAll = useCallback(async () => {
-    const [st, ann, test, gal, cm, nl, ac, ld, ss] = await Promise.all([
+    const [st, ann, test, gal, cm, nl, ac, ld, ss, sr] = await Promise.all([
       supabase.from("service_times").select("*").order("sort_order"),
       supabase.from("announcements").select("*").order("sort_order"),
       supabase.from("testimonies").select("*").order("created_at", { ascending: false }),
@@ -57,6 +66,7 @@ const AdminDashboard = () => {
       supabase.from("about_content").select("*"),
       supabase.from("leaders").select("*").order("sort_order"),
       supabase.from("site_settings").select("*"),
+      supabase.from("messages").select("*").order("service_date", { ascending: false }),
     ]);
     if (st.data) setServiceTimes(st.data);
     if (ann.data) setAnnouncements(ann.data);
@@ -76,6 +86,7 @@ const AdminDashboard = () => {
       ss.data.forEach((row: any) => { map[row.setting_key] = row.setting_value; });
       setSiteSettings(map);
     }
+    if (sr.data) setSermonList(sr.data);
   }, []);
 
   useEffect(() => { if (!loading && !user) navigate("/admin/login"); }, [user, loading, navigate]);
@@ -232,10 +243,61 @@ const AdminDashboard = () => {
     toast({ title: "Testimony deleted" }); fetchAll();
   };
 
-  // ── MESSAGES ──────────────────────────────────────────────
+  // ── CONTACT MESSAGES ──────────────────────────────────────
   const deleteContactMessage = async (id: string) => {
     await supabase.from("contact_messages").delete().eq("id", id);
     toast({ title: "Message deleted" }); fetchAll();
+  };
+
+  // ── SERMON UPLOAD ─────────────────────────────────────────
+  const uploadSermonFile = async (file: File, folder: string) => {
+    const ext = file.name.split(".").pop();
+    const filename = `${folder}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("messages").upload(filename, file);
+    if (error) throw error;
+    const { data } = supabase.storage.from("messages").getPublicUrl(filename);
+    return data.publicUrl;
+  };
+
+  const handleSermonUpload = async () => {
+    setSermonError("");
+    setSermonSuccess(false);
+    if (!sermonForm.title || !sermonForm.speaker || !sermonForm.service_date) {
+      setSermonError("Title, speaker, and date are required.");
+      return;
+    }
+    setSermonUploading(true);
+    try {
+      let audio_url = null;
+      let notes_url = null;
+      if (audioFile) audio_url = await uploadSermonFile(audioFile, "audio");
+      if (notesFile) notes_url = await uploadSermonFile(notesFile, "notes");
+      const { error } = await supabase.from("messages").insert({
+        title: sermonForm.title,
+        speaker: sermonForm.speaker,
+        service_date: sermonForm.service_date,
+        summary: sermonForm.summary || null,
+        audio_url,
+        notes_url,
+      });
+      if (error) throw error;
+      setSermonSuccess(true);
+      setSermonForm({ title: "", speaker: "", service_date: "", summary: "" });
+      setAudioFile(null);
+      setNotesFile(null);
+      toast({ title: "Message uploaded successfully" });
+      fetchAll();
+    } catch (err: any) {
+      setSermonError(err.message || "Something went wrong.");
+    } finally {
+      setSermonUploading(false);
+    }
+  };
+
+  const deleteSermon = async (id: string) => {
+    await supabase.from("messages").delete().eq("id", id);
+    toast({ title: "Message deleted" });
+    fetchAll();
   };
 
   // ── ABOUT ─────────────────────────────────────────────────
@@ -301,7 +363,8 @@ const AdminDashboard = () => {
             <TabsTrigger value="announcements"><Megaphone size={14} className="mr-1.5" />Announcements</TabsTrigger>
             <TabsTrigger value="gallery"><Image size={14} className="mr-1.5" />Gallery</TabsTrigger>
             <TabsTrigger value="testimonies"><MessageSquare size={14} className="mr-1.5" />Testimonies</TabsTrigger>
-            <TabsTrigger value="messages"><Mail size={14} className="mr-1.5" />Messages</TabsTrigger>
+            <TabsTrigger value="sermons"><Headphones size={14} className="mr-1.5" />Messages</TabsTrigger>
+            <TabsTrigger value="messages"><Mail size={14} className="mr-1.5" />Inbox</TabsTrigger>
             <TabsTrigger value="about"><Info size={14} className="mr-1.5" />About</TabsTrigger>
             <TabsTrigger value="settings"><Settings size={14} className="mr-1.5" />Contact Info</TabsTrigger>
           </TabsList>
@@ -422,7 +485,6 @@ const AdminDashboard = () => {
               {galleryImages.map(img => (
                 <div key={img.id} className={`relative group rounded-xl overflow-hidden shadow-soft ${!img.is_active ? "opacity-50" : ""} ${selectedImages.has(img.id) ? "ring-2 ring-primary" : ""}`}>
                   <img src={img.image_url} alt={img.caption || ""} className="w-full h-40 object-cover" loading="lazy" />
-                  {/* Always-visible checkbox — click to select */}
                   <div
                     className={`absolute top-2 left-2 w-6 h-6 rounded border-2 flex items-center justify-center transition-all cursor-pointer z-10 ${selectedImages.has(img.id) ? "bg-primary border-primary" : "bg-black/50 border-white/80 hover:border-white"}`}
                     onClick={() => toggleSelectImage(img.id)}>
@@ -471,7 +533,82 @@ const AdminDashboard = () => {
             ))}
           </TabsContent>
 
-          {/* ── MESSAGES ── */}
+          {/* ── SERMONS / MESSAGES UPLOAD ── */}
+          <TabsContent value="sermons" className="space-y-6">
+            <div className="bg-card rounded-2xl p-6 shadow-soft">
+              <h2 className="font-heading text-lg font-semibold text-foreground mb-1">Upload Message</h2>
+              <p className="text-muted-foreground text-sm mb-5">Add a new service message. It goes live on the public Messages page immediately.</p>
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Title *</Label>
+                    <Input placeholder="e.g. The Power of Faith" value={sermonForm.title} onChange={e => setSermonForm({...sermonForm, title: e.target.value})} className="mt-1" />
+                  </div>
+                  <div>
+                    <Label>Speaker *</Label>
+                    <Input placeholder="e.g. Pst. Emmanuel Adeyemi" value={sermonForm.speaker} onChange={e => setSermonForm({...sermonForm, speaker: e.target.value})} className="mt-1" />
+                  </div>
+                </div>
+                <div>
+                  <Label>Service Date *</Label>
+                  <Input type="date" value={sermonForm.service_date} onChange={e => setSermonForm({...sermonForm, service_date: e.target.value})} className="mt-1" />
+                </div>
+                <div>
+                  <Label>Summary <span className="text-muted-foreground">(optional)</span></Label>
+                  <Textarea placeholder="Brief summary of the message..." rows={3} value={sermonForm.summary} onChange={e => setSermonForm({...sermonForm, summary: e.target.value})} className="mt-1 resize-none" />
+                </div>
+                <div>
+                  <Label>Audio File <span className="text-muted-foreground">(optional)</span></Label>
+                  <input type="file" accept="audio/*" onChange={e => setAudioFile(e.target.files?.[0] || null)}
+                    className="mt-1 w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary file:text-primary-foreground hover:file:opacity-90" />
+                </div>
+                <div>
+                  <Label>Notes File <span className="text-muted-foreground">(PDF or Doc, optional)</span></Label>
+                  <input type="file" accept=".pdf,.doc,.docx" onChange={e => setNotesFile(e.target.files?.[0] || null)}
+                    className="mt-1 w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary file:text-primary-foreground hover:file:opacity-90" />
+                </div>
+                {sermonError && <p className="text-sm text-destructive">{sermonError}</p>}
+                {sermonSuccess && (
+                  <div className="flex items-center gap-2 text-sm text-green-600">
+                    <CheckCircle size={16} /> Message uploaded successfully.
+                  </div>
+                )}
+                <Button onClick={handleSermonUpload} disabled={sermonUploading} className="bg-primary text-primary-foreground w-full">
+                  {sermonUploading ? <Loader2 size={16} className="mr-2 animate-spin" /> : <Upload size={16} className="mr-2" />}
+                  {sermonUploading ? "Uploading..." : "Upload Message"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Uploaded messages list */}
+            <div className="space-y-3">
+              <h3 className="font-heading text-base font-semibold text-foreground">Uploaded Messages ({sermonList.length})</h3>
+              {sermonList.length === 0 && <p className="text-muted-foreground text-sm text-center py-6">No messages uploaded yet.</p>}
+              {sermonList.map(s => (
+                <div key={s.id} className="bg-card rounded-xl p-4 shadow-soft flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-semibold text-foreground">{s.title}</p>
+                    <p className="text-muted-foreground text-sm">{s.speaker} • {new Date(s.service_date).toLocaleDateString("en-NG", { year: "numeric", month: "long", day: "numeric" })}</p>
+                    <div className="flex gap-3 mt-2">
+                      {s.audio_url && (
+                        <a href={s.audio_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
+                          <Headphones size={13} /> Audio
+                        </a>
+                      )}
+                      {s.notes_url && (
+                        <a href={s.notes_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
+                          <FileText size={13} /> Notes
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => deleteSermon(s.id)} className="text-destructive shrink-0"><Trash2 size={16} /></Button>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* ── INBOX (CONTACT MESSAGES) ── */}
           <TabsContent value="messages" className="space-y-6">
             <h2 className="font-heading text-lg font-semibold text-foreground">Contact Messages ({contactMessages.length})</h2>
             {contactMessages.length === 0 && <p className="text-muted-foreground text-center py-8">No messages yet.</p>}
