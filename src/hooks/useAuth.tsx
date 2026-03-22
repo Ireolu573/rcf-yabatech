@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const lastCheckedUserId = useRef<string | null>(null);
+  const initialized = useRef(false);
 
   const checkAdmin = async (userId: string): Promise<boolean> => {
     try {
@@ -39,47 +39,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let isMounted = true;
 
-    // Use onAuthStateChange as the single source of truth
+    const init = async () => {
+      try {
+        // Try getUser() first — hits server directly, no lock needed
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (!isMounted) return;
+
+        if (currentUser) {
+          setUser(currentUser);
+          await checkAdmin(currentUser.id);
+        }
+      } catch {
+        // Silent fail — user just not logged in
+      } finally {
+        if (isMounted) setLoading(false);
+        initialized.current = true;
+      }
+    };
+
+    init();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         if (!isMounted) return;
-
-        if (!newSession) {
-          lastCheckedUserId.current = null;
+        // Only react to explicit sign in/out events after init
+        if (event === "SIGNED_IN" && newSession) {
+          setSession(newSession);
+          setUser(newSession.user);
+          setLoading(true);
+          await checkAdmin(newSession.user.id);
+          if (isMounted) setLoading(false);
+        } else if (event === "SIGNED_OUT") {
           setSession(null);
           setUser(null);
           setIsAdmin(false);
           setLoading(false);
-          return;
+        } else if (event === "TOKEN_REFRESHED" && newSession) {
+          setSession(newSession);
+          setUser(newSession.user);
         }
-
-        const userId = newSession.user.id;
-
-        // Skip if we already checked this user
-        if (userId === lastCheckedUserId.current) {
-          if (isMounted) setLoading(false);
-          return;
-        }
-
-        lastCheckedUserId.current = userId;
-        setSession(newSession);
-        setUser(newSession.user);
-        setLoading(true);
-
-        await checkAdmin(userId);
-
-        if (isMounted) setLoading(false);
       }
     );
-
-    // Trigger initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session && isMounted) {
-        setLoading(false);
-      }
-    }).catch(() => {
-      if (isMounted) setLoading(false);
-    });
 
     return () => {
       isMounted = false;
@@ -88,13 +88,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    lastCheckedUserId.current = null;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error: error as Error | null };
   };
 
   const signOut = async () => {
-    lastCheckedUserId.current = null;
     setIsAdmin(false);
     setUser(null);
     setSession(null);
@@ -103,9 +101,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshAdmin = async () => {
     try {
-      lastCheckedUserId.current = null;
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) await checkAdmin(session.user.id);
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser) await checkAdmin(currentUser.id);
     } catch {
       setIsAdmin(false);
     }
