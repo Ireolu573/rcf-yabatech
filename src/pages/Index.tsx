@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, BookOpen, Users, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import heroBg from "@/assets/hero-bg.jpg";
+import hero1 from "@/assets/hero-1.jpg";
+import hero2 from "@/assets/hero-2.jpg";
+import hero3 from "@/assets/hero-3.jpg";
+import hero4 from "@/assets/hero-4.jpg";
+import hero5 from "@/assets/hero-5.jpg";
+
+const heroImages = [hero1, hero2, hero3, hero4, hero5];
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -21,23 +27,53 @@ const iconMap: Record<string, typeof BookOpen> = { BookOpen, Users, Heart };
 const Index = () => {
   const [serviceTimes, setServiceTimes] = useState<Tables<"service_times">[]>([]);
   const [announcements, setAnnouncements] = useState<Tables<"announcements">[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
-    // Simple one-time fetch — no WebSocket/realtime needed on public homepage
     supabase.from("service_times").select("*").eq("is_active", true).order("sort_order")
       .then(({ data }) => { if (data) setServiceTimes(data); });
     supabase.from("announcements").select("*").eq("is_active", true).order("sort_order")
       .then(({ data }) => { if (data) setAnnouncements(data); });
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div>
-      {/* Hero */}
+      {/* Hero Slideshow */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={heroBg} alt="RCF YABATECH worship" className="w-full h-full object-cover" />
+          <AnimatePresence mode="sync">
+            <motion.img
+              key={currentSlide}
+              src={heroImages[currentSlide]}
+              alt="RCF YABATECH worship"
+              className="absolute w-full h-full object-cover"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1 }}
+            />
+          </AnimatePresence>
           <div className="absolute inset-0 bg-gradient-hero opacity-80" />
         </div>
+
+        {/* Slide indicators */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {heroImages.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentSlide(i)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${i === currentSlide ? "bg-white w-6" : "bg-white/50"}`}
+            />
+          ))}
+        </div>
+
         <div className="relative z-10 container mx-auto px-4 text-center">
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-gold font-medium text-sm tracking-widest uppercase mb-4">Welcome to</motion.p>
           <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="font-heading text-5xl md:text-7xl font-bold text-primary-foreground leading-tight mb-4">RCF YABATECH</motion.h1>
