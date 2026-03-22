@@ -420,15 +420,15 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {galleryImages.length === 0 && <p className="text-muted-foreground text-center py-8 col-span-4">No images yet.</p>}
               {galleryImages.map(img => (
-                <div key={img.id} className={`relative group rounded-xl overflow-hidden shadow-soft cursor-pointer ${!img.is_active ? "opacity-50" : ""} ${selectedImages.has(img.id) ? "ring-2 ring-primary" : ""}`}
-                  onClick={() => toggleSelectImage(img.id)}>
+                <div key={img.id} className={`relative group rounded-xl overflow-hidden shadow-soft ${!img.is_active ? "opacity-50" : ""} ${selectedImages.has(img.id) ? "ring-2 ring-primary" : ""}`}>
                   <img src={img.image_url} alt={img.caption || ""} className="w-full h-40 object-cover" loading="lazy" />
-                  {/* Checkbox indicator */}
-                  <div className={`absolute top-2 left-2 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${selectedImages.has(img.id) ? "bg-primary border-primary" : "bg-black/40 border-white/60 group-hover:border-white"}`}>
-                    {selectedImages.has(img.id) && <Check size={12} className="text-white" />}
+                  {/* Always-visible checkbox — click to select */}
+                  <div
+                    className={`absolute top-2 left-2 w-6 h-6 rounded border-2 flex items-center justify-center transition-all cursor-pointer z-10 ${selectedImages.has(img.id) ? "bg-primary border-primary" : "bg-black/50 border-white/80 hover:border-white"}`}
+                    onClick={() => toggleSelectImage(img.id)}>
+                    {selectedImages.has(img.id) && <Check size={13} className="text-white" />}
                   </div>
-                  <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2"
-                    onClick={e => e.stopPropagation()}>
+                  <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button variant="ghost" size="sm" onClick={() => toggleGalleryImage(img.id, img.is_active)} className="text-primary-foreground p-2 h-auto" title={img.is_active ? "Hide" : "Show"}>
                       {img.is_active ? <EyeOff size={18} /> : <Eye size={18} />}
                     </Button>

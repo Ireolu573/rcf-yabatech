@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const initialized = useRef(false);
+  const lastCheckedUserId = useRef<string | null>(null);
 
   const checkAdmin = async (userId: string): Promise<boolean> => {
     try {
@@ -39,73 +39,73 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let isMounted = true;
 
-    const init = async () => {
-      try {
-        // Try getUser() first — hits server directly, no lock needed
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
-        if (!isMounted) return;
-
-        if (currentUser) {
-          setUser(currentUser);
-          await checkAdmin(currentUser.id);
-        }
-      } catch {
-        // Silent fail — user just not logged in
-      } finally {
+    const resolveAuth = async (currentSession: Session | null) => {
+      const userId = currentSession?.user?.id ?? null;
+      if (userId && userId === lastCheckedUserId.current) {
         if (isMounted) setLoading(false);
-        initialized.current = true;
+        return;
+      }
+      lastCheckedUserId.current = userId;
+      if (!isMounted) return;
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      if (currentSession?.user) {
+        try { await checkAdmin(currentSession.user.id); }
+        catch { if (isMounted) setIsAdmin(false); }
+      } else {
+        if (isMounted) setIsAdmin(false);
+      }
+      if (isMounted) setLoading(false);
+    };
+
+    const initAuth = async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        const fallbackSession = currentUser
+          ? ({ user: currentUser, access_token: "", refresh_token: "" } as unknown as Session)
+          : null;
+        await resolveAuth(fallbackSession);
+      } catch {
+        if (isMounted) { setSession(null); setUser(null); setIsAdmin(false); setLoading(false); }
       }
     };
 
-    init();
+    initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      async (_event, newSession) => {
         if (!isMounted) return;
-        // Only react to explicit sign in/out events after init
-        if (event === "SIGNED_IN" && newSession) {
-          setSession(newSession);
-          setUser(newSession.user);
-          setLoading(true);
-          await checkAdmin(newSession.user.id);
-          if (isMounted) setLoading(false);
-        } else if (event === "SIGNED_OUT") {
-          setSession(null);
-          setUser(null);
-          setIsAdmin(false);
-          setLoading(false);
-        } else if (event === "TOKEN_REFRESHED" && newSession) {
-          setSession(newSession);
-          setUser(newSession.user);
+        if (!newSession) {
+          lastCheckedUserId.current = null;
+          setSession(null); setUser(null); setIsAdmin(false); setLoading(false);
+          return;
         }
+        setLoading(true);
+        await resolveAuth(newSession);
       }
     );
 
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
+    return () => { isMounted = false; subscription.unsubscribe(); };
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    lastCheckedUserId.current = null;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error: error as Error | null };
   };
 
   const signOut = async () => {
-    setIsAdmin(false);
-    setUser(null);
-    setSession(null);
+    lastCheckedUserId.current = null;
+    setIsAdmin(false); setUser(null); setSession(null);
     await supabase.auth.signOut();
   };
 
   const refreshAdmin = async () => {
     try {
+      lastCheckedUserId.current = null;
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) await checkAdmin(currentUser.id);
-    } catch {
-      setIsAdmin(false);
-    }
+    } catch { setIsAdmin(false); }
   };
 
   return (
