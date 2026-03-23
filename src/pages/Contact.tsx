@@ -97,7 +97,7 @@ const Contact = () => {
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0 }}>
               <motion.h2 variants={fadeUp} custom={0} className="font-heading text-2xl font-bold text-foreground mb-6">Get In Touch</motion.h2>
               <motion.p variants={fadeUp} custom={1} className="text-muted-foreground mb-8 leading-relaxed">Whether you have questions about our fellowship, need prayer, or want to connect, don't hesitate to reach out. We're here for you!</motion.p>
 
@@ -150,7 +150,7 @@ const Contact = () => {
                 <Button onClick={() => { setSent(false); setContactForm({ name: "", email: "", message: "" }); }} variant="outline" className="rounded-full">Send Another</Button>
               </motion.div>
             ) : (
-              <motion.form onSubmit={handleSubmit} initial="hidden" whileInView="visible" viewport={{ once: true }} className="bg-card rounded-2xl p-8 shadow-soft">
+              <motion.form onSubmit={handleSubmit} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0 }} className="bg-card rounded-2xl p-8 shadow-soft">
                 <motion.h2 variants={fadeUp} custom={0} className="font-heading text-2xl font-bold text-foreground mb-6">Send a Message</motion.h2>
                 <div className="space-y-5">
                   <motion.div variants={fadeUp} custom={1}><Label htmlFor="contact-name">Name</Label><Input id="contact-name" placeholder="Your name" value={contactForm.name} onChange={e => setContactForm({...contactForm, name: e.target.value})} required className="mt-1.5" /></motion.div>

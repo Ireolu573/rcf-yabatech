@@ -74,7 +74,7 @@ const About = () => {
       {/* History */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4 max-w-3xl">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }}>
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0 }}>
             <motion.h2 variants={fadeUp} custom={0} className="font-heading text-3xl font-bold text-foreground mb-6 text-center">
               {history?.title || "Our History"}
             </motion.h2>
@@ -94,7 +94,7 @@ const About = () => {
             <motion.div
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0 }}
               variants={fadeUp}
               custom={0}
               className="bg-card rounded-2xl p-8 shadow-soft"
@@ -111,7 +111,7 @@ const About = () => {
             <motion.div
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0 }}
               variants={fadeUp}
               custom={1}
               className="bg-card rounded-2xl p-8 shadow-soft"
@@ -130,7 +130,7 @@ const About = () => {
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
+            viewport={{ once: true, amount: 0 }}
             className="mt-12 max-w-4xl mx-auto"
           >
             <motion.h3 variants={fadeUp} custom={0} className="font-heading text-2xl font-bold text-foreground text-center mb-8">
@@ -164,7 +164,7 @@ const About = () => {
           <motion.h2
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
+            viewport={{ once: true, amount: 0 }}
             variants={fadeUp}
             custom={0}
             className="font-heading text-3xl font-bold text-foreground text-center mb-12"
@@ -175,7 +175,7 @@ const About = () => {
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
+            viewport={{ once: true, amount: 0 }}
             className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
           >
             {leaders.map((leader, i) => (
