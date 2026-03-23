@@ -97,13 +97,13 @@ const Contact = () => {
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0 }}>
-              <motion.h2 variants={fadeUp} custom={0} className="font-heading text-2xl font-bold text-foreground mb-6">Get In Touch</motion.h2>
-              <motion.p variants={fadeUp} custom={1} className="text-muted-foreground mb-8 leading-relaxed">Whether you have questions about our fellowship, need prayer, or want to connect, don't hesitate to reach out. We're here for you!</motion.p>
+            <div>
+              <h2 className="font-heading text-2xl font-bold text-foreground mb-6">Get In Touch</h2>
+              <p className="text-muted-foreground mb-8 leading-relaxed">Whether you have questions about our fellowship, need prayer, or want to connect, don't hesitate to reach out. We're here for you!</p>
 
               <div className="space-y-5">
                 {contactItems.map((item, i) => (
-                  <motion.div key={item.label} variants={fadeUp} custom={i + 2} className="flex items-start gap-4">
+                  <motion.div key={item.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.12, duration: 0.5 }} className="flex items-start gap-4">
                     <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <item.icon className="text-primary" size={20} />
                     </div>
@@ -120,7 +120,7 @@ const Contact = () => {
               </div>
 
               {socialLinks.length > 0 && (
-                <motion.div variants={fadeUp} custom={5} className="flex gap-3 mt-8">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5 }} className="flex gap-3 mt-8">
                   {socialLinks.map((social) => (
                     <a key={social.label} href={social.url} target="_blank" rel="noopener noreferrer"
                       className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
@@ -132,7 +132,7 @@ const Contact = () => {
                 </motion.div>
               )}
 
-              <motion.div variants={fadeUp} custom={6} className="mt-10 bg-muted rounded-2xl p-6">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.5 }} className="mt-10 bg-muted rounded-2xl p-6">
                 <h3 className="font-heading font-semibold text-foreground mb-2">Newsletter</h3>
                 <p className="text-muted-foreground text-sm mb-4">Subscribe for updates and event announcements.</p>
                 <div className="flex gap-2">
@@ -140,7 +140,7 @@ const Contact = () => {
                   <Button onClick={handleNewsletter} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg">Subscribe</Button>
                 </div>
               </motion.div>
-            </motion.div>
+            </div>
 
             {sent ? (
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-card rounded-2xl p-12 text-center shadow-soft flex flex-col items-center justify-center">
