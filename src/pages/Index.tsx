@@ -43,7 +43,6 @@ const Index = () => {
 
   return (
     <div>
-      {/* Hero Slideshow */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <AnimatePresence mode="sync">
@@ -61,7 +60,6 @@ const Index = () => {
           <div className="absolute inset-0 bg-gradient-hero opacity-80" />
         </div>
 
-        {/* Slide indicators */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
           {heroImages.map((_, i) => (
             <button
@@ -74,9 +72,9 @@ const Index = () => {
 
         <div className="relative z-10 container mx-auto px-4 text-center">
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-gold font-medium text-sm tracking-widest uppercase mb-4">Welcome to</motion.p>
-          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="font-heading text-5xl md:text-7xl font-bold text-primary-foreground leading-tight mb-4">RCF YABATECH</motion.h1>
-          <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="text-primary-foreground/80 text-lg md:text-xl max-w-2xl mx-auto mb-3">Redeemed Christian Fellowship, Yaba College of Technology</motion.p>
-          <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="text-gold font-heading text-xl md:text-2xl italic mb-8">"Raising Purpose-Driven Students for Christ"</motion.p>
+          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="font-heading text-5xl md:text-7xl font-bold text-primary-foreground">RCF YABATECH</motion.h1>
+          <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="text-primary-foreground/80 text-lg md:text-xl max-w-2xl mx-auto mt-6">A Christ-centered student fellowship for worship, discipleship, and community.</motion.p>
+          <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="text-gold font-heading text-xl md:text-2xl italic mb-8">"Raising a generation for Christ"</motion.p>
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}>
             <Link to="/contact">
               <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-glow-gold text-base px-8 py-6 rounded-full font-semibold">
@@ -87,23 +85,21 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Welcome */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} className="max-w-3xl mx-auto text-center">
             <motion.h2 variants={fadeUp} custom={0} className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">Welcome to Our Fellowship</motion.h2>
             <motion.p variants={fadeUp} custom={1} className="text-muted-foreground text-lg leading-relaxed">
-              RCF YABATECH is a vibrant community of students passionate about knowing God and making Him known. We gather every week to worship, study God's Word, and build lasting friendships rooted in faith. Whether you're new on campus or looking for a spiritual family, you're welcome here!
+              RCF YABATECH is a vibrant community of students passionate about knowing God and making Him known. We gather every week to worship, study God's Word, and build lasting friendships rooted in Christ.
             </motion.p>
           </motion.div>
         </div>
       </section>
 
-      {/* Service Times */}
       {serviceTimes.length > 0 && (
         <section className="py-20 bg-gradient-section">
           <div className="container mx-auto px-4">
-            <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="font-heading text-3xl md:text-4xl font-bold text-foreground text-center mb-12">Our Services</motion.h2>
+            <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="font-heading text-3xl md:text-4xl font-bold text-foreground text-center mb-10">Service Times</motion.h2>
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {serviceTimes.map((s, i) => (
                 <motion.div key={s.id} variants={fadeUp} custom={i + 1} className="bg-card rounded-2xl p-8 text-center shadow-soft hover:shadow-glow-primary transition-shadow duration-300">
@@ -118,21 +114,23 @@ const Index = () => {
         </section>
       )}
 
-      {/* Announcements */}
       {announcements.length > 0 && (
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4">
-            <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="font-heading text-3xl md:text-4xl font-bold text-foreground text-center mb-4">Upcoming Programs</motion.h2>
-            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1} className="text-muted-foreground text-center mb-12 max-w-xl mx-auto">Stay connected with what God is doing in our fellowship</motion.p>
+            <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="font-heading text-3xl md:text-4xl font-bold text-foreground text-center mb-4">Announcements</motion.h2>
+            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1} className="text-muted-foreground text-center mb-12 max-w-xl mx-auto">Stay connected with the latest updates, programs, and events.</motion.p>
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
               {announcements.map((a, i) => {
                 const Icon = iconMap[a.icon || "BookOpen"] || BookOpen;
                 return (
                   <motion.div key={a.id} variants={fadeUp} custom={i + 2} className="bg-card rounded-2xl p-7 shadow-soft hover:-translate-y-1 transition-transform duration-300">
+                    {a.flyer_url && <img src={a.flyer_url} alt={a.title} className="w-full h-40 object-cover rounded-xl mb-4" />}
                     {a.tag && <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mb-4 bg-primary/10 text-primary">{a.tag}</span>}
-                    <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
-                      <Icon className="text-foreground" size={22} />
-                    </div>
+                    {!a.flyer_url && (
+                      <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
+                        <Icon className="text-foreground" size={22} />
+                      </div>
+                    )}
                     <h3 className="font-heading text-lg font-semibold text-foreground mb-2">{a.title}</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">{a.description}</p>
                   </motion.div>
@@ -143,7 +141,6 @@ const Index = () => {
         </section>
       )}
 
-      {/* CTA */}
       <section className="py-20 bg-gradient-hero text-center">
         <div className="container mx-auto px-4">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }}>
